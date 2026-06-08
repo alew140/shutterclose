@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShutterClose.js — Fixed Start Position</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a12;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .page-subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.4);
+            font-size: 15px;
+            margin-bottom: 30px;
+        }
+
+        .config-bar {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .config-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            font-weight: 600;
+        }
+        .config-group input[type="range"] {
+            width: 140px;
+            accent-color: #ff6b6b;
+        }
+        .config-group input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        .config-value {
+            font-size: 13px;
+            color: #ff6b6b;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .areas-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .area-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            min-height: 220px;
+        }
+
+        .area-medium { grid-column: span 4; }
+        .area-large { grid-column: span 6; }
+        .area-full { grid-column: span 12; }
+
+        .area-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .area-icon { font-size: 32px; }
+        .area-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .area-desc {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .close-area-btn {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            z-index: 50;
+        }
+        .close-area-btn:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* ===== SHUTTER ===== */
+        .area-shutter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+        .area-shutter.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* 
+         * PANEL: height = 100% (fills the shutter exactly).
+         * Slats are stacked inside at top: 0%, 12.5%, 25%... 
+         * The panel starts at translateY(-300%) — 3x its own height above.
+         * This means the slats are WAY above the visible area.
+         * When animation runs, the entire panel slides down to translateY(0).
+         */
+        .shutter-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Start: above by heightMultiplier × own height */
+            transform: translateY(-300%);
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .area-shutter.active .shutter-panel {
+            animation: panelSlideDown var(--duration, 2s) var(--easing, cubic-bezier(0.22, 1, 0.36, 1)) forwards;
+        }
+
+        @keyframes panelSlideDown {
+            0% {
+                transform: translateY(var(--start-y, -300%));
+                opacity: 0;
+                visibility: hidden;
+            }
+            0.1% {
+                opacity: 1;
+                visibility: visible;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        /* Slats: each is 100%/count tall, stacked vertically */
+        .area-shutter-slat {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(180deg, 
+                #3d4f6f 0%, 
+                #2a3a52 15%, 
+                #4a5d7a 30%, 
+                #1e2d42 45%, 
+                #3d4f6f 60%, 
+                #253447 75%, 
+                #3d4f6f 100%);
+            border-bottom: 1px solid rgba(0,0,0,0.5);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+        .area-shutter-slat::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+        }
+
+        /* ===== SIGN ===== */
+        .shutter-sign {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 20;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border-radius: 16px;
+            padding: 24px 32px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 20px 60px rgba(238, 90, 36, 0.4), 0 0 0 4px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2);
+            min-width: 220px;
+        }
+        .area-shutter.active .shutter-sign.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .shutter-sign-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+        .shutter-sign-title { color: #fff; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+        .shutter-sign-subtitle { color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; letter-spacing: 1px; }
+        .shutter-sign.blue { background: linear-gradient(135deg, #4A9EFF 0%, #1a5fb4 100%); }
+        .shutter-sign.green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .shutter-sign.purple { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+        .shutter-sign.gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+
+        .area-card.closed { opacity: 0.3; pointer-events: none; }
+        .area-card.closed .area-shutter { opacity: 1; pointer-events: none; }
+        .area-card.closed .shutter-panel { transform: translateY(0) !important; animation: none !important; opacity: 1 !important; }
+        .area-card.closed .shutter-sign { transform: translate(-50%, -50%) scale(1) !important; opacity: 1 !important; }
+
+        .reopen-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .area-card.closed .reopen-btn { opacity: 1; pointer-events: all; }
+
+        @media (max-width: 768px) {
+            .areas-grid { grid-template-columns: 1fr; }
+            .area-medium, .area-large, .area-full { grid-column: span 1 !important; }
+            .config-bar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="page-title">ShutterClose.js</h1>
+    <p class="page-subtitle">Panel height = 100% (fills shutter). Starts at translateY(-N × 100%)</p>
+
+    <div class="config-bar">
+        <div class="config-group">
+            <label>Height Multiplier</label>
+            <input type="range" id="cfgHeight" min="1" max="10" step="0.5" value="3" oninput="updateConfig()">
+            <span class="config-value" id="valHeight">3×</span>
+        </div>
+        <div class="config-group">
+            <label>Duration (s)</label>
+            <input type="range" id="cfgDuration" min="0.5" max="5" step="0.1" value="2" oninput="updateConfig()">
+            <span class="config-value" id="valDuration">2.0s</span>
+        </div>
+        <div class="config-group">
+            <label>Slat Count</label>
+            <input type="number" id="cfgSlats" min="2" max="20" value="8" oninput="updateConfig()">
+        </div>
+        <div class="config-group">
+            <label>Deceleration %</label>
+            <input type="range" id="cfgDecel" min="90" max="99" step="1" value="97" oninput="updateConfig()">
+            <span class="config-value" id="valDecel">97%</span>
+        </div>
+    </div>
+
+    <div class="areas-grid">
+        <div class="area-card area-medium" id="area1">
+            <div class="area-shutter" id="shutter1"></div>
+            <div class="area-header"><span class="area-icon">☕</span><span class="area-title">Coffee Break</span></div>
+            <div class="area-desc">Quick break with current settings.</div>
+            <button class="close-area-btn" onclick="demoClose('area1', 'shutter1', {icon:'☕',title:'BRB',subtitle:'Coffee break',color:'gold'})">🔒</button>
+            <button class="reopen-btn" onclick="reopenArea('area1', 'shutter1')">Unlock</button>
+        </div>
+
+        <div class="area-card area-medium" id="area2">
+            <div class="area-shutter" id="shutter2"></div>
+            <div class="area-header"><span class="area-icon">🔧</span><span class="area-title">Maintenance</span></div>
+            <div class="area-desc">System update in progress.</div>
+            <button class="close-area-btn" onclick="demoClose('area2', 'shutter2', {icon:'🔧',title:'MAINTENANCE',subtitle:'System update',color:'blue'})">🔒</button>
+            <button class="reopen-btn" onclick="reopenArea('area2', 'shutter2')">Unlock</button>
+        </div>
+
+        <div class="area-card area-medium" id="area3">
+            <div class="area-shutter" id="shutter3"></div>
+            <div class="area-header"><span class="area-icon">🍔</span><span class="area-title">Lunch Time</span></div>
+            <div class="area-desc">Out for lunch. Back soon!</div>
+            <button class="close-area-btn" onclick="demoClose('area3', 'shutter3', {icon:'🍔',title:'LUNCH',subtitle:'Be back soon',color:'green'})">🔒</button>
+            <button class="reopen-btn" onclick="reopenArea('area3', 'shutter3')">Unlock</button>
+        </div>
+
+        <div class="area-card area-large" id="area4">
+            <div class="area-shutter" id="shutter4"></div>
+            <div class="area-header"><span class="area-icon">🌙</span><span class="area-title">End of Day</span></div>
+            <div class="area-desc">Team has left. See you tomorrow!</div>
+            <button class="close-area-btn" onclick="demoClose('area4', 'shutter4', {icon:'🌙',title:'GONE',subtitle:'See you tomorrow',color:'purple'})">🔒</button>
+            <button class="reopen-btn" onclick="reopenArea('area4', 'shutter4')">Unlock</button>
+        </div>
+
+        <div class="area-card area-large" id="area5">
+            <div class="area-shutter" id="shutter5"></div>
+            <div class="area-header"><span class="area-icon">📝</span><span class="area-title">Custom Sign</span></div>
+            <div class="area-desc">Type your own message.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                <input type="text" id="signTitle" placeholder="Title" value="MEETING" style="flex:1;min-width:100px;padding:8px 12px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:13px;outline:none;">
+                <input type="text" id="signSubtitle" placeholder="Subtitle" value="In progress" style="flex:1;min-width:100px;padding:8px 12px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:13px;outline:none;">
+            </div>
+            <button class="close-area-btn" onclick="demoClose('area5', 'shutter5', {icon:'📝',title:document.getElementById('signTitle').value,subtitle:document.getElementById('signSubtitle').value,color:'gold'})">🔒</button>
+            <button class="reopen-btn" onclick="reopenArea('area5', 'shutter5')">Unlock</button>
+        </div>
+
+        <div class="area-card area-full" id="area6">
+            <div class="area-shutter" id="shutter6"></div>
+            <div class="area-header"><span class="area-icon">🏪</span><span class="area-title">Store Status</span></div>
+            <div class="area-desc">Full-width area. Panel stretches across.</div>
+            <button class="close-area-btn" onclick="demoClose('area6', 'shutter6', {icon:'🏪',title:'CLOSED',subtitle:'We\'ll be back',color:'red'})">🔒</button>
+            <button class="reopen-btn" onclick="reopenArea('area6', 'shutter6')">Unlock</button>
+        </div>
+    </div>
+
+    <script>
+        let globalConfig = {
+            heightMultiplier: 3,
+            duration: 2,
+            slatCount: 8,
+            deceleration: 97
+        };
+
+        function updateConfig() {
+            globalConfig.heightMultiplier = parseFloat(document.getElementById('cfgHeight').value);
+            globalConfig.duration = parseFloat(document.getElementById('cfgDuration').value);
+            globalConfig.slatCount = parseInt(document.getElementById('cfgSlats').value);
+            globalConfig.deceleration = parseInt(document.getElementById('cfgDecel').value);
+
+            document.getElementById('valHeight').textContent = globalConfig.heightMultiplier + '×';
+            document.getElementById('valDuration').textContent = globalConfig.duration.toFixed(1) + 's';
+            document.getElementById('valDecel').textContent = globalConfig.deceleration + '%';
+        }
+
+        // Generate cubic-bezier for N% deceleration
+        function generateEasing(decel) {
+            const t = decel / 100;
+            const x1 = 0.1;
+            const y1 = 0.5;
+            const x2 = 0.5 + t * 0.4;
+            const y2 = t;
+            return `cubic-bezier(${x1.toFixed(3)}, ${y1.toFixed(3)}, ${x2.toFixed(3)}, ${y2.toFixed(3)})`;
+        }
+
+        function createPanel(shutterId, count, heightMult) {
+            const shutter = document.getElementById(shutterId);
+            shutter.innerHTML = '';
+
+            const panel = document.createElement('div');
+            panel.className = 'shutter-panel';
+
+            // Panel height = 100% of shutter (fills it exactly)
+            // Start position = -heightMultiplier × 100% (way above)
+            const startY = -(heightMult * 100);
+            panel.style.setProperty('--start-y', startY + '%');
+
+            const slatHeight = 100 / count;
+
+            for (let i = 0; i < count; i++) {
+                const slat = document.createElement('div');
+                slat.className = 'area-shutter-slat';
+                slat.style.top = (i * slatHeight) + '%';
+                slat.style.height = slatHeight + '%';
+
+                const shine = document.createElement('div');
+                shine.style.cssText = 'position:absolute;top:2px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);';
+                slat.appendChild(shine);
+
+                const shadow = document.createElement('div');
+                shadow.style.cssText = 'position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(0,0,0,0.4);';
+                slat.appendChild(shadow);
+
+                panel.appendChild(slat);
+            }
+
+            shutter.appendChild(panel);
+            return panel;
+        }
+
+        function createSign(shutterId, config) {
+            const shutter = document.getElementById(shutterId);
+            const sign = document.createElement('div');
+            sign.className = 'shutter-sign ' + (config.color || '');
+            sign.innerHTML = `
+                <span class="shutter-sign-icon">${config.icon || '🔒'}</span>
+                <div class="shutter-sign-title">${config.title || 'CLOSED'}</div>
+                <div class="shutter-sign-subtitle">${config.subtitle || 'Be back soon'}</div>
+            `;
+            shutter.appendChild(sign);
+            return sign;
+        }
+
+        async function demoClose(areaId, shutterId, signConfig) {
+            const area = document.getElementById(areaId);
+            const shutter = document.getElementById(shutterId);
+            const cfg = { ...globalConfig };
+
+            // Create panel with correct start position
+            const panel = createPanel(shutterId, cfg.slatCount, cfg.heightMultiplier);
+
+            // Set duration and easing
+            panel.style.setProperty('--duration', cfg.duration + 's');
+            panel.style.setProperty('--easing', generateEasing(cfg.deceleration));
+
+            // Create sign
+            const sign = createSign(shutterId, signConfig);
+
+            // Activate
+            shutter.classList.add('active');
+
+            // Wait for animation
+            await sleep(cfg.duration * 1000 + 200);
+
+            // Show sign
+            sign.classList.add('show');
+
+            await sleep(1500);
+            area.classList.add('closed');
+        }
+
+        function reopenArea(areaId, shutterId) {
+            const area = document.getElementById(areaId);
+            const shutter = document.getElementById(shutterId);
+            area.classList.remove('closed');
+            shutter.classList.remove('active');
+            shutter.innerHTML = '';
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
