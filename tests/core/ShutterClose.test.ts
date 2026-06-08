@@ -8,6 +8,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  ShutterClose.configure({ injectCSS: true, defaults: {} })
   vi.useRealTimers()
 })
 
@@ -144,13 +145,29 @@ describe('ShutterClose — static API', () => {
     vi.advanceTimersByTime(500)
     await closePromise
     expect(el.querySelectorAll('.sc-slat').length).toBe(12)
-    ShutterClose.configure({ defaults: {} })
   })
 
-  it('ShutterClose.target returns an object with close method', () => {
+  it('ShutterClose.close() static creates instance and closes', async () => {
     const el = makePanel()
-    // target is patched by index.ts in real usage; test the placeholder exists
+    const p = ShutterClose.close(el, { duration: 0.1 })
+    vi.advanceTimersByTime(500)
+    await p
+    expect(el.querySelector('.sc-shutter')).not.toBeNull()
+  })
+
+  it('ShutterClose.target returns a function (placeholder)', () => {
     expect(typeof ShutterClose.target).toBe('function')
+  })
+
+  it('destroy() resets isShut to false', async () => {
+    const el = makePanel()
+    const sc = new ShutterClose(el, { duration: 0.1 })
+    const p = sc.close()
+    vi.advanceTimersByTime(500)
+    await p
+    expect(sc.isShut).toBe(true)
+    sc.destroy()
+    expect(sc.isShut).toBe(false)
   })
 })
 

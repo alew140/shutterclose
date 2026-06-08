@@ -153,6 +153,7 @@ export class ShutterClose {
   destroy(): void {
     this.shutterEl?.remove()
     this.shutterEl = null
+    this._isShut = false
     registry.delete(this.el)
   }
 
