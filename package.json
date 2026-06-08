@@ -1,0 +1,71 @@
+{
+  "name": "shutterclose",
+  "version": "0.1.0",
+  "description": "Animated roller-shutter effect — covers any HTML element with sliding slats and a customizable closed sign",
+  "keywords": ["animation", "shutter", "CSS", "UI", "closed", "react", "vue", "vanilla"],
+  "author": "alew140",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/alew140/shutterclose" },
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.esm.js",
+      "require": "./dist/react/index.cjs.js",
+      "types": "./dist/react/index.d.ts"
+    },
+    "./vue": {
+      "import": "./dist/vue/index.esm.js",
+      "require": "./dist/vue/index.cjs.js",
+      "types": "./dist/vue/index.d.ts"
+    },
+    "./no-css": {
+      "import": "./dist/no-css.esm.js",
+      "require": "./dist/no-css.cjs.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/shutterclose.css": "./dist/shutterclose.css"
+  },
+  "sideEffects": [
+    "./dist/index.esm.js",
+    "./dist/index.cjs.js",
+    "./dist/shutterclose.css"
+  ],
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run type-check && npm run test && npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "vue": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "react": { "optional": true },
+    "vue": { "optional": true }
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/react": "^18.0.0",
+    "@vue/test-utils": "^2.4.0",
+    "happy-dom": "^14.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "vue": "^3.5.0"
+  }
+}
