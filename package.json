@@ -64,7 +64,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run type-check && npm run test && npm run build"
+    "prepublishOnly": "npm run type-check && npm run test && npm run build",
+    "release": "changeset publish"
   },
   "peerDependencies": {
     "react": ">=18",
