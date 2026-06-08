@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ShutterCloseVue from '../../src/vue/ShutterClose.vue'
+import ShutterCloseVue from '../../src/vue/ShutterClose'
 
 beforeEach(() => {
   vi.useFakeTimers()

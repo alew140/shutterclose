@@ -1,2 +1,2 @@
-export { default as ShutterClose } from './ShutterClose.vue'
+export { default as ShutterClose } from './ShutterClose'
 export { useShutterClose } from './useShutterClose'

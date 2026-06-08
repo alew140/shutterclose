@@ -21,37 +21,37 @@
     "type": "git",
     "url": "https://github.com/alew140/shutterclose"
   },
-  "main": "./dist/index.cjs.js",
-  "module": "./dist/index.esm.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./react": {
-      "import": "./dist/react/index.esm.js",
-      "require": "./dist/react/index.cjs.js",
-      "types": "./dist/react/index.d.ts"
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.mjs",
+      "require": "./dist/react/index.js"
     },
     "./vue": {
-      "import": "./dist/vue/index.esm.js",
-      "require": "./dist/vue/index.cjs.js",
-      "types": "./dist/vue/index.d.ts"
+      "types": "./dist/vue/index.d.ts",
+      "import": "./dist/vue/index.mjs",
+      "require": "./dist/vue/index.js"
     },
     "./no-css": {
-      "import": "./dist/no-css.esm.js",
-      "require": "./dist/no-css.cjs.js",
-      "types": "./dist/no-css.d.ts"
+      "types": "./dist/no-css.d.ts",
+      "import": "./dist/no-css.mjs",
+      "require": "./dist/no-css.js"
     },
     "./shutterclose.css": "./dist/shutterclose.css"
   },
   "sideEffects": [
-    "./dist/index.esm.js",
-    "./dist/index.cjs.js",
-    "./dist/react/index.esm.js",
-    "./dist/react/index.cjs.js",
+    "./dist/index.mjs",
+    "./dist/index.js",
+    "./dist/react/index.mjs",
+    "./dist/react/index.js",
     "./dist/shutterclose.css"
   ],
   "files": [
