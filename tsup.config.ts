@@ -27,6 +27,7 @@ export default defineConfig([
   // Standalone CSS file copy
   {
     entry: { shutterclose: 'src/core/shutterclose.css' },
+    format: ['esm'],
     outDir: 'dist',
     loader: { '.css': 'copy' },
   },
