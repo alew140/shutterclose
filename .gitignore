@@ -3,4 +3,8 @@ dist/
 *.tsbuildinfo
 .DS_Store
 .superpowers/
+.claude/
 package-lock.json
+
+# Internal planning and AI dev artifacts
+docs/superpowers/
