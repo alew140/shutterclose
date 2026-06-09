@@ -30,7 +30,7 @@
     "url": "https://github.com/alew140/shutterclose/issues"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   },
   "repository": {
     "type": "git",
