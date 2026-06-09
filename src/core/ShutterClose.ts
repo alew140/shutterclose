@@ -59,12 +59,23 @@ export class ShutterClose {
   private shutterEl: HTMLElement | null = null
   private _isShut = false
 
-  // Patched by index.ts after import to avoid circular dep with Builder
+  /**
+   * Entry point for the fluent builder API.
+   * Patched by `index.ts` to return a `ShutterCloseBuilder`; throws if called from the raw core module.
+   * @example
+   * ShutterClose.target('#hero').slats(10).duration(1.5).theme('blue').close()
+   */
   static target: (target: Target) => { close(): Promise<void>; open(): Promise<void>; slats(n: number): unknown } =
     (_target: Target) => {
       throw new Error('ShutterClose.target() requires importing from "shutterclose", not the internal core module.')
     }
 
+  /**
+   * Set package-wide defaults applied to every new instance.
+   * Call before creating any instances; later calls merge into existing config.
+   * @example
+   * ShutterClose.configure({ defaults: { slats: 12, duration: 1.5 }, injectCSS: true })
+   */
   static configure(config: GlobalConfig): void {
     globalConfig = {
       injectCSS: config.injectCSS ?? globalConfig.injectCSS ?? true,
@@ -72,10 +83,18 @@ export class ShutterClose {
     }
   }
 
+  /**
+   * Shorthand — create an instance and immediately close it.
+   * Equivalent to `new ShutterClose(target, options).close()`.
+   */
   static close(target: Target, options?: ShutterCloseOptions): Promise<void> {
     return new ShutterClose(target, options).close()
   }
 
+  /**
+   * Open (retract) the shutter on an element that was previously closed.
+   * No-op if the element has no registered ShutterClose instance.
+   */
   static open(target: Target): Promise<void> {
     const el = resolveTarget(target)
     return registry.get(el)?.open() ?? Promise.resolve()
