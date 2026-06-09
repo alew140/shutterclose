@@ -1,6 +1,6 @@
 {
   "name": "shutterclose",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Animated roller-shutter effect for any HTML element — zero dependencies, 1.6 KB gzip, React & Vue included",
   "keywords": [
     "animation",
