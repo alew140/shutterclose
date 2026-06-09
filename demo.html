@@ -18,12 +18,14 @@
   <div id="countdown"></div>
 
   <script>
+    const SC = ShutterClose.ShutterClose
+
     document.getElementById('btn').addEventListener('click', async () => {
       const btn = document.getElementById('btn')
       const cd = document.getElementById('countdown')
       btn.disabled = true
 
-      await ShutterClose.close(document.body, {
+      await SC.close(document.body, {
         slats: 10,
         duration: 1.2,
         sign: { icon: '🔒', title: 'BACK IN 15 SECONDS', subtitle: "Don't go anywhere!" }
@@ -38,7 +40,7 @@
       }, 1000)
 
       await new Promise(r => setTimeout(r, 15000))
-      await ShutterClose.open(document.body)
+      await SC.open(document.body)
       cd.textContent = ''
       btn.disabled = false
     })

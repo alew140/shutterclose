@@ -509,6 +509,8 @@ The IIFE build exposes a global named `ShutterClose`.
 
     <script src="https://unpkg.com/shutterclose/dist/index.global.js"></script>
     <script>
+      const { ShutterClose } = window.ShutterClose
+
       // Close for 10 seconds, then reopen
       ShutterClose.close('#app', {
         slats: 10,
