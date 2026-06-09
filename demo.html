@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ShutterClose Demo</title>
+  <script src="dist/index.global.js"></script>
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+    h1 { font-size: 2rem; margin-bottom: 1rem; }
+    button { padding: 1rem 2.5rem; font-size: 1.1rem; cursor: pointer; border: none; border-radius: 8px; background: #222; color: #fff; }
+    button:hover { background: #444; }
+    #countdown { margin-top: 1rem; font-size: 1rem; color: #666; min-height: 1.5rem; }
+  </style>
+</head>
+<body>
+  <h1>ShutterClose.js</h1>
+  <button id="btn">Close for 15 seconds</button>
+  <div id="countdown"></div>
+
+  <script>
+    document.getElementById('btn').addEventListener('click', async () => {
+      const btn = document.getElementById('btn')
+      const cd = document.getElementById('countdown')
+      btn.disabled = true
+
+      await ShutterClose.close(document.body, {
+        slats: 10,
+        duration: 1.2,
+        sign: { icon: '🔒', title: 'BACK IN 15 SECONDS', subtitle: "Don't go anywhere!" }
+      })
+
+      let secs = 15
+      cd.textContent = `Opening in ${secs}s…`
+      const timer = setInterval(() => {
+        secs--
+        cd.textContent = secs > 0 ? `Opening in ${secs}s…` : 'Opening…'
+        if (secs <= 0) clearInterval(timer)
+      }, 1000)
+
+      await new Promise(r => setTimeout(r, 15000))
+      await ShutterClose.open(document.body)
+      cd.textContent = ''
+      btn.disabled = false
+    })
+  </script>
+</body>
+</html>

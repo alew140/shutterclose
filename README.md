@@ -4,16 +4,7 @@
 
 **An animated roller-shutter effect for any HTML element.**
 
-```
-┌─────────────────────────────┐
-│#############################│  <- slat 1
-│#############################│  <- slat 2
-│#############################│  <- slat 3
-│         ┌─────────┐         │
-│         │ CLOSED  │         │  <- sign
-│         └─────────┘         │
-└─────────────────────────────┘
-```
+![ShutterClose demo](media/demo.gif)
 
 [![npm version](https://img.shields.io/npm/v/shutterclose.svg)](https://www.npmjs.com/package/shutterclose)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/shutterclose.svg?label=core%20gzip)](https://bundlephobia.com/package/shutterclose)
@@ -23,13 +14,14 @@
 
 </div>
 
-shutterclose covers any HTML element with smooth sliding slats and an optional customizable sign. Use it for modal overlays, content restrictions, maintenance screens, and creative UI moments. Ships with vanilla, React, and Vue bindings, full TypeScript types, and zero runtime dependencies.
+Cover any HTML element with smooth, mechanical sliding slats and a customizable sign. Perfect for maintenance screens, content gates, modal overlays, and creative UI moments. Ships with vanilla, React, and Vue bindings, strict TypeScript types, and zero runtime dependencies.
 
 ## Table of Contents
 
 - [Why shutterclose?](#why-shutterclose)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Real-world examples](#real-world-examples)
 - [Themes](#themes)
 - [API Reference](#api-reference)
   - [Static API](#static-api)
@@ -47,31 +39,20 @@ shutterclose covers any HTML element with smooth sliding slats and an optional c
 
 ## Why shutterclose?
 
-- **A genuinely unique effect.** Animated, decelerating slats with overshoot give content a physical, mechanical roller-shutter feel that no generic fade or slide reproduces.
+- **A genuinely unique effect.** Decelerating slats with overshoot give content a physical, mechanical feel that no generic fade or slide reproduces.
 - **Zero runtime dependencies.** Pure JavaScript and CSS. Nothing else lands in your `node_modules`.
 - **Framework agnostic.** First-class bindings for React and Vue, plus a vanilla API that works anywhere the DOM does.
-- **Tiny.** 1.6 KB gzipped for the core, with separate subpath exports so you only ship the binding you use.
+- **Tiny.** Under 2 KB gzipped for the core. Subpath exports let you ship only the binding you use.
 
 ## Installation
 
 ```bash
 npm install shutterclose
+# pnpm add shutterclose
+# yarn add shutterclose
 ```
 
-```bash
-pnpm add shutterclose
-```
-
-```bash
-yarn add shutterclose
-```
-
-No build step? Load it straight from a CDN:
-
-```html
-<script src="https://unpkg.com/shutterclose/dist/index.global.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/shutterclose/dist/shutterclose.css">
-```
+No build step? Load it straight from a CDN — see [CDN / Browser Usage](#cdn--browser-usage).
 
 ## Quick Start
 
@@ -80,13 +61,13 @@ No build step? Load it straight from a CDN:
 ```javascript
 import ShutterClose from 'shutterclose'
 
-// Close the element
-await ShutterClose.close('.my-element', {
-  sign: { title: 'CLOSED', theme: 'red' }
+// Close an element
+await ShutterClose.close('#hero', {
+  sign: { icon: '🔒', title: 'CLOSED', subtitle: 'Come back soon' }
 })
 
 // Open it again
-await ShutterClose.open('.my-element')
+await ShutterClose.open('#hero')
 ```
 
 ### React
@@ -95,13 +76,17 @@ await ShutterClose.open('.my-element')
 import { useState } from 'react'
 import { ShutterClose } from 'shutterclose/react'
 
-export function Panel() {
-  const [shut, setShut] = useState(false)
+export function PricingCard() {
+  const [locked, setLocked] = useState(false)
 
   return (
-    <ShutterClose isShut={shut} sign={{ title: 'CLOSED' }}>
-      <p>Content here</p>
-      <button onClick={() => setShut(!shut)}>Toggle</button>
+    <ShutterClose
+      isShut={locked}
+      sign={{ icon: '⭐', title: 'PRO ONLY', subtitle: 'Upgrade to unlock', theme: 'gold' }}
+      onClosed={() => console.log('locked')}
+    >
+      <h2>Advanced Analytics</h2>
+      <button onClick={() => setLocked(true)}>Lock</button>
     </ShutterClose>
   )
 }
@@ -114,40 +99,142 @@ export function Panel() {
 import { ref } from 'vue'
 import { ShutterClose } from 'shutterclose/vue'
 
-const shut = ref(false)
+const locked = ref(false)
 </script>
 
 <template>
-  <ShutterClose :is-shut="shut" :sign="{ title: 'CLOSED' }">
-    <p>Content here</p>
-    <button @click="shut = !shut">Toggle</button>
+  <ShutterClose
+    :is-shut="locked"
+    :sign="{ icon: '⭐', title: 'PRO ONLY', subtitle: 'Upgrade to unlock', theme: 'gold' }"
+  >
+    <h2>Advanced Analytics</h2>
+    <button @click="locked = true">Lock</button>
   </ShutterClose>
 </template>
 ```
 
-## Themes
+## Real-world examples
 
-Six built-in sign themes ship out of the box:
+### Maintenance window
 
-```
-🟠 default   🔵 blue   🟢 green
-🟣 purple    🟡 gold   🔴 red
-```
-
-| Theme | Palette | Suggested Use |
-|-------|---------|---------------|
-| `default` | orange / amber | General-purpose closed state |
-| `blue` | professional blue | Informational overlays |
-| `green` | success green | Available / online states |
-| `purple` | modern purple | Branded or premium UI |
-| `gold` | premium gold | Maintenance, highlights |
-| `red` | alert red | Restricted, error, blocked |
-
-Apply a theme through any options object:
+Shut the whole page down and bring it back automatically.
 
 ```javascript
-await ShutterClose.close('.modal', {
-  sign: { title: 'CLOSED', theme: 'purple' }
+import ShutterClose from 'shutterclose'
+
+async function startMaintenance(durationMs) {
+  await ShutterClose.close(document.body, {
+    slats: 12,
+    duration: 1.5,
+    sign: {
+      icon: '🔧',
+      title: 'UNDER MAINTENANCE',
+      subtitle: 'Back online shortly',
+      theme: 'gold',
+    },
+  })
+
+  await new Promise(r => setTimeout(r, durationMs))
+  await ShutterClose.open(document.body)
+}
+
+startMaintenance(15_000) // back in 15 seconds
+```
+
+### Premium content gate
+
+Lock sections until the user upgrades — no page navigation needed.
+
+```javascript
+const gate = ShutterClose.target('#premium-section')
+  .slats(8)
+  .duration(1.2)
+  .sign({ icon: '⭐', title: 'PRO PLAN', subtitle: 'Upgrade to unlock', theme: 'gold' })
+
+// Lock on page load
+gate.close()
+
+// Unlock after purchase
+document.getElementById('upgrade-btn').addEventListener('click', async () => {
+  const ok = await purchaseUpgrade()
+  if (ok) gate.open()
+})
+```
+
+### React — dashboard panel with loading state
+
+```jsx
+import { useShutterClose } from 'shutterclose/react'
+import { useRef, useEffect } from 'react'
+
+export function RevenueChart({ isLoading }) {
+  const ref = useRef(null)
+  const { close, open } = useShutterClose(ref, {
+    sign: { icon: '⏳', title: 'LOADING DATA', theme: 'blue' },
+  })
+
+  useEffect(() => {
+    if (isLoading) close()
+    else open()
+  }, [isLoading])
+
+  return (
+    <div ref={ref} className="chart-panel">
+      <Chart />
+    </div>
+  )
+}
+```
+
+### Fluent builder — reusable instance
+
+```javascript
+const shutter = ShutterClose.target('.modal')
+  .slats(16)
+  .duration(1.8)
+  .deceleration(95)
+  .sign({ icon: '🔒', title: 'SESSION EXPIRED', subtitle: 'Please log in again', theme: 'red' })
+  .onClose(() => analytics.track('session_expired'))
+  .onOpen(() => router.push('/login'))
+
+// Later — trigger from anywhere
+await shutter.close()
+```
+
+### Global defaults — configure once for your whole app
+
+```javascript
+import ShutterClose from 'shutterclose'
+
+ShutterClose.configure({
+  defaults: {
+    slats: 10,
+    duration: 1.4,
+    sign: { icon: '🔒', title: 'RESTRICTED' },
+  },
+})
+
+// Every subsequent call inherits these defaults
+await ShutterClose.close('#section-a')
+await ShutterClose.close('#section-b', { sign: { title: 'PREMIUM ONLY', theme: 'gold' } })
+```
+
+## Themes
+
+Six built-in sign themes, applied via `sign.theme`:
+
+| Theme | Use case |
+|-------|----------|
+| `default` | General closed state (orange / amber) |
+| `blue` | Informational overlays |
+| `green` | Available / online / success |
+| `purple` | Branded or premium UI |
+| `gold` | Maintenance, upgrades, highlights |
+| `red` | Restricted, error, blocked access |
+
+```javascript
+await ShutterClose.close('.section', {
+  sign: { icon: '⚠️', title: 'RESTRICTED', theme: 'red' }
 })
 ```
 
@@ -166,10 +253,10 @@ ShutterClose.close(target: Target, options?: ShutterCloseOptions): Promise<void>
 Covers the target with the shutter animation. Resolves when the close animation completes.
 
 ```javascript
-await ShutterClose.close('.modal', {
+await ShutterClose.close('#modal', {
   slats: 12,
   duration: 1.5,
-  sign: { title: 'CLOSED', icon: '🔒', theme: 'red' }
+  sign: { icon: '🔒', title: 'CLOSED', theme: 'red' },
 })
 ```
 
@@ -182,7 +269,7 @@ ShutterClose.open(target: Target): Promise<void>
 Reveals a previously closed target. Resolves when the open animation completes.
 
 ```javascript
-await ShutterClose.open('.modal')
+await ShutterClose.open('#modal')
 ```
 
 #### `ShutterClose.target`
@@ -230,11 +317,7 @@ Sets global defaults shared by every instance and static call.
 ```javascript
 ShutterClose.configure({
   injectCSS: true,
-  defaults: {
-    slats: 10,
-    duration: 1.5,
-    sign: { title: 'MAINTENANCE' }
-  }
+  defaults: { slats: 10, duration: 1.5 },
 })
 ```
 
@@ -249,7 +332,7 @@ Construct an instance for fine-grained, stateful control over a single target.
 ```javascript
 const instance = new ShutterClose('.overlay', {
   slats: 12,
-  sign: { title: 'CLOSED' }
+  sign: { title: 'CLOSED' },
 })
 
 await instance.close()
@@ -275,7 +358,7 @@ Every option is optional and merges over the configured global defaults.
 | `duration` | `number` | `2` | Animation duration in seconds |
 | `heightMultiplier` | `number` | `3` | Slat starting-height multiplier for overshoot |
 | `deceleration` | `number` | `97` | Easing deceleration percentage, 0–100 |
-| `easing` | `string` | — | Custom CSS easing curve |
+| `easing` | `string` | — | Custom CSS easing curve, overrides `deceleration` |
 | `sign` | `SignConfig` | — | Closed-sign configuration |
 | `onClose` | `() => void` | — | Fires after the close animation completes |
 | `onOpen` | `() => void` | — | Fires after the open animation completes |
@@ -291,13 +374,9 @@ Every option is optional and merges over the configured global defaults.
 
 ### React
 
-Import bindings from `shutterclose/react`.
+Import from `shutterclose/react`.
 
 #### `useShutterClose`
-
-```typescript
-useShutterClose(ref: RefObject<HTMLElement>, options?: ShutterCloseOptions)
-```
 
 ```jsx
 import { useRef } from 'react'
@@ -307,12 +386,12 @@ export function Panel() {
   const ref = useRef(null)
   const { close, open, toggle, isShut } = useShutterClose(ref, {
     slats: 12,
-    sign: { title: 'CLOSED', theme: 'red' }
+    sign: { icon: '🔒', title: 'CLOSED', theme: 'red' },
   })
 
   return (
-    <div ref={ref}>
-      <p>{isShut ? 'Closed' : 'Open'}</p>
+    <div ref={ref} style={{ position: 'relative' }}>
+      <p>{isShut ? 'Locked' : 'Open'}</p>
       <button onClick={toggle}>Toggle</button>
     </div>
   )
@@ -323,7 +402,7 @@ export function Panel() {
 |----------|------|-------------|
 | `close()` | `() => Promise<void>` | Close the shutter |
 | `open()` | `() => Promise<void>` | Open the shutter |
-| `toggle()` | `() => Promise<void>` | Toggle the current state |
+| `toggle()` | `() => Promise<void>` | Toggle current state |
 | `isShut` | `boolean` | Current closed state |
 
 #### `<ShutterClose />`
@@ -332,16 +411,15 @@ export function Panel() {
 import { ShutterClose } from 'shutterclose/react'
 
 <ShutterClose
-  isShut={shut}
+  isShut={locked}
   slats={12}
   duration={1.5}
-  sign={{ title: 'CLOSED', icon: '🔒', theme: 'red' }}
-  onClosed={() => console.log('closed')}
-  onOpened={() => console.log('opened')}
-  className="container"
-  style={{ maxWidth: 500 }}
+  sign={{ icon: '🔒', title: 'CLOSED', theme: 'red' }}
+  onClosed={() => analytics.track('locked')}
+  onOpened={() => analytics.track('unlocked')}
+  className="panel"
 >
-  <h1>Content</h1>
+  <YourContent />
 </ShutterClose>
 ```
 
@@ -350,19 +428,15 @@ import { ShutterClose } from 'shutterclose/react'
 | `isShut` | `boolean` | `false` | Controlled closed state |
 | `onClosed` | `() => void` | — | Fires when close completes |
 | `onOpened` | `() => void` | — | Fires when open completes |
-| `className` | `string` | — | Class for the wrapper element |
-| `style` | `CSSProperties` | — | Inline styles for the wrapper |
-| _...ShutterCloseOptions_ | — | — | All [Options](#options) are accepted as props |
+| `className` | `string` | — | Class for the wrapper div |
+| `style` | `CSSProperties` | — | Inline styles for the wrapper div |
+| _...options_ | — | — | All [Options](#options) are accepted as props |
 
 ### Vue
 
-Import bindings from `shutterclose/vue`.
+Import from `shutterclose/vue`.
 
 #### `useShutterClose`
-
-```typescript
-useShutterClose(el: Ref<HTMLElement | null>, options?: ShutterCloseOptions)
-```
 
 ```vue
 <script setup>
@@ -372,13 +446,13 @@ import { useShutterClose } from 'shutterclose/vue'
 const el = ref(null)
 const { close, open, toggle, isShut } = useShutterClose(el, {
   slats: 12,
-  sign: { title: 'CLOSED', theme: 'red' }
+  sign: { icon: '🔒', title: 'CLOSED', theme: 'red' },
 })
 </script>
 
 <template>
-  <div ref="el">
-    <p>{{ isShut ? 'Closed' : 'Open' }}</p>
+  <div ref="el" style="position: relative">
+    <p>{{ isShut ? 'Locked' : 'Open' }}</p>
     <button @click="toggle">Toggle</button>
   </div>
 </template>
@@ -388,30 +462,30 @@ const { close, open, toggle, isShut } = useShutterClose(el, {
 |----------|------|-------------|
 | `close()` | `() => Promise<void>` | Close the shutter |
 | `open()` | `() => Promise<void>` | Open the shutter |
-| `toggle()` | `() => Promise<void>` | Toggle the current state |
+| `toggle()` | `() => Promise<void>` | Toggle current state |
 | `isShut` | `Ref<boolean>` | Reactive closed state |
 
 #### `<ShutterClose />`
 
 ```vue
 <ShutterClose
-  :is-shut="shut"
+  :is-shut="locked"
   :slats="12"
   :duration="1.5"
-  :sign="{ title: 'CLOSED', icon: '🔒', theme: 'red' }"
-  class="container"
+  :sign="{ icon: '🔒', title: 'CLOSED', theme: 'red' }"
+  class="panel"
   @closed="onClosed"
   @opened="onOpened"
 >
-  <h1>Content</h1>
+  <YourContent />
 </ShutterClose>
 ```
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `isShut` | `boolean` | `false` | Controlled closed state |
-| `class` | `string` | — | Class for the wrapper element |
-| _...ShutterCloseOptions_ | — | — | All [Options](#options) are accepted as props |
+| `class` | `string` | — | Class for the wrapper div |
+| _...options_ | — | — | All [Options](#options) are accepted as props |
 
 | Event | Description |
 |-------|-------------|
@@ -420,7 +494,7 @@ const { close, open, toggle, isShut } = useShutterClose(el, {
 
 ## CDN / Browser Usage
 
-The IIFE build exposes a global named `ShutterClose`. Drop in two tags and call it directly.
+The IIFE build exposes a global named `ShutterClose`.
 
 ```html
 <!DOCTYPE html>
@@ -435,11 +509,11 @@ The IIFE build exposes a global named `ShutterClose`. Drop in two tags and call 
 
     <script src="https://unpkg.com/shutterclose/dist/index.global.js"></script>
     <script>
+      // Close for 10 seconds, then reopen
       ShutterClose.close('#app', {
-        slats: 16,
-        duration: 1.5,
-        sign: { title: 'CLOSED', theme: 'gold' }
-      })
+        slats: 10,
+        sign: { icon: '🔧', title: 'MAINTENANCE', subtitle: 'Back in 10 seconds', theme: 'gold' }
+      }).then(() => setTimeout(() => ShutterClose.open('#app'), 10_000))
     </script>
   </body>
 </html>
@@ -447,14 +521,13 @@ The IIFE build exposes a global named `ShutterClose`. Drop in two tags and call 
 
 ## CSS Control
 
-By default the core auto-injects its stylesheet into `<head>`, so no extra setup is needed.
+Styles are auto-injected by default — no extra setup needed.
 
 ```javascript
-import ShutterClose from 'shutterclose'
-// Styles are injected automatically.
+import ShutterClose from 'shutterclose' // CSS injected automatically
 ```
 
-For full control over loading order or bundling, use the `no-css` entry and import the stylesheet yourself.
+For full control over load order or bundlers that manage CSS:
 
 ```javascript
 import ShutterClose from 'shutterclose/no-css'
@@ -463,18 +536,11 @@ import 'shutterclose/shutterclose.css'
 ShutterClose.configure({ injectCSS: false })
 ```
 
-The stylesheet exposes CSS custom properties for theming.
+The stylesheet exposes CSS custom properties for theming:
 
 ```css
-.sc-shutter {
-  --sc-duration: 2s;
-  --sc-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --sc-start-y: -300%;
-}
-
-.sc-slat {
-  background: linear-gradient(135deg, #333 0%, #444 100%);
-}
+.sc-shutter { --sc-duration: 2s; --sc-start-y: -300%; }
+.sc-slat    { background: linear-gradient(135deg, #333 0%, #444 100%); }
 ```
 
 ## Server-Side Rendering
@@ -486,23 +552,22 @@ The CSS injector guards on `typeof document === 'undefined'`, so importing shutt
 shutterclose is authored in strict TypeScript and ships complete `.d.ts` declarations for every entry point.
 
 ```typescript
-import type { ShutterCloseOptions, SignConfig, Theme } from 'shutterclose'
+import type { ShutterCloseOptions, SignConfig, Theme, GlobalConfig } from 'shutterclose'
 import ShutterClose from 'shutterclose'
 
-const options: ShutterCloseOptions = {
+const opts: ShutterCloseOptions = {
   slats: 10,
-  duration: 1.5,
-  sign: { title: 'CLOSED', theme: 'red' }
+  sign: { icon: '🔒', title: 'CLOSED', theme: 'red' satisfies Theme },
 }
 
-await ShutterClose.close('.modal', options)
+await ShutterClose.close('.modal', opts)
 ```
 
-Exported types: `ShutterCloseOptions`, `SignConfig`, `Theme`, `Target`, `GlobalConfig`, and `ShutterCloseTargetError`.
+Exported types: `ShutterCloseOptions`, `SignConfig`, `Theme`, `Target`, `GlobalConfig`, `ShutterCloseTargetError`.
 
 ## Error Handling
 
-A `ShutterCloseTargetError` is thrown when a selector matches no element.
+`ShutterCloseTargetError` is thrown when a selector matches no element.
 
 ```javascript
 import ShutterClose, { ShutterCloseTargetError } from 'shutterclose'
@@ -518,7 +583,7 @@ try {
 
 ## Contributing
 
-Contributions are welcome. Open an issue or a pull request on [GitHub](https://github.com/alew140/shutterclose). CI runs on Node 18 and 20 via GitHub Actions, and releases are managed with Changesets.
+Contributions are welcome. Open an issue or a pull request on [GitHub](https://github.com/alew140/shutterclose). CI runs on Node 18 and 20, and releases are managed with Changesets.
 
 ## License
 
