@@ -1,19 +1,34 @@
 {
   "name": "shutterclose",
   "version": "0.1.0",
-  "description": "Animated roller-shutter effect — covers any HTML element with sliding slats and a customizable closed sign",
+  "description": "Animated roller-shutter effect for any HTML element — zero dependencies, 1.6 KB gzip, React & Vue included",
   "keywords": [
     "animation",
     "shutter",
-    "CSS",
-    "UI",
-    "closed",
+    "roller-shutter",
+    "overlay",
+    "transition",
+    "effect",
+    "closed-sign",
+    "maintenance",
+    "modal",
+    "typescript",
+    "zero-dependency",
     "react",
     "vue",
-    "vanilla"
+    "vanilla",
+    "esm",
+    "css-animation"
   ],
-  "author": "alew140",
+  "author": {
+    "name": "alew140",
+    "url": "https://github.com/alew140"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/alew140/shutterclose#readme",
+  "bugs": {
+    "url": "https://github.com/alew140/shutterclose/issues"
+  },
   "engines": {
     "node": ">=16"
   },
