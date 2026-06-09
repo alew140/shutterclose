@@ -8,6 +8,7 @@ export default defineConfig([
     globalName: 'ShutterClose',
     dts: true,
     sourcemap: true,
+    minify: true,
     clean: true,
     outDir: 'dist',
     esbuildOptions(opts) {
@@ -19,6 +20,7 @@ export default defineConfig([
     entry: { 'no-css': 'src/core/no-css.ts' },
     format: ['esm', 'cjs'],
     dts: true,
+    minify: true,
     outDir: 'dist',
     esbuildOptions(opts) {
       opts.loader = { ...opts.loader, '.css': 'text' }
@@ -37,6 +39,7 @@ export default defineConfig([
     format: ['esm', 'cjs'],
     dts: true,
     sourcemap: true,
+    minify: true,
     outDir: 'dist/react',
     external: ['react', 'react/jsx-runtime'],
     esbuildOptions(opts) {
@@ -50,6 +53,7 @@ export default defineConfig([
     format: ['esm', 'cjs'],
     dts: true,
     sourcemap: true,
+    minify: true,
     outDir: 'dist/vue',
     external: ['vue'],
     esbuildOptions(opts) {
