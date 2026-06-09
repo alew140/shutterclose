@@ -159,6 +159,28 @@ describe('ShutterClose — static API', () => {
     expect(typeof ShutterClose.target).toBe('function')
   })
 
+  it('ShutterClose.open() on unregistered element resolves without error', async () => {
+    const el = makePanel()
+    await expect(ShutterClose.open(el)).resolves.toBeUndefined()
+  })
+
+  it('injectCSS: false skips style tag injection', () => {
+    ShutterClose.configure({ injectCSS: false })
+    const el = makePanel()
+    new ShutterClose(el)
+    expect(document.getElementById('shutterclose-css')).toBeNull()
+  })
+
+  it('auto-corrects static-positioned element to relative', async () => {
+    const el = makePanel()
+    el.style.position = 'static'
+    const sc = new ShutterClose(el, { duration: 0.1 })
+    const p = sc.close()
+    vi.advanceTimersByTime(500)
+    await p
+    expect(el.style.position).toBe('relative')
+  })
+
   it('destroy() resets isShut to false', async () => {
     const el = makePanel()
     const sc = new ShutterClose(el, { duration: 0.1 })
